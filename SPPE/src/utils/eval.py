@@ -1,4 +1,4 @@
-from opt import opt
+from SPPE.src.opt import opt
 try:
     from utils.img import transformBoxInvert, transformBoxInvert_batch, findPeak, processPeaks
 except ImportError:

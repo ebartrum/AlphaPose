@@ -5,10 +5,10 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 from PIL import Image, ImageDraw
 from SPPE.src.utils.img import load_image, cropBox, im_to_torch
-from opt import opt
+from .opt import opt
 from yolo.preprocess import prep_image, prep_frame, inp_to_image
-from pPose_nms import pose_nms, write_json
-from matching import candidate_reselect as matching
+from .pPose_nms import pose_nms, write_json
+from .matching import candidate_reselect as matching
 from SPPE.src.utils.eval import getPrediction, getMultiPeakPrediction
 from yolo.util import write_results, dynamic_write_results
 from yolo.darknet import Darknet
@@ -30,9 +30,9 @@ else:
     from Queue import Queue, LifoQueue
 
 if opt.vis_fast:
-    from fn import vis_frame_fast as vis_frame
+    from .fn import vis_frame_fast as vis_frame
 else:
-    from fn import vis_frame
+    from .fn import vis_frame
 
 
 class Image_loader(data.Dataset):
