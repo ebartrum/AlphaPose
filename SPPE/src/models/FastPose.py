@@ -7,13 +7,13 @@ from SPPE.src.opt import opt
 
 
 def createModel():
-    return FastPose()
+    return FastPose(nClasses=33)
 
 
 class FastPose(nn.Module):
     DIM = 128
 
-    def __init__(self):
+    def __init__(self, nClasses=opt.nClasses):
         super(FastPose, self).__init__()
 
         self.preact = SEResnet('resnet101')
@@ -21,9 +21,10 @@ class FastPose(nn.Module):
         self.suffle1 = nn.PixelShuffle(2)
         self.duc1 = DUC(512, 1024, upscale_factor=2)
         self.duc2 = DUC(256, 512, upscale_factor=2)
+        self.nClasses = nClasses
 
         self.conv_out = nn.Conv2d(
-            self.DIM, opt.nClasses, kernel_size=3, stride=1, padding=1)
+            self.DIM, self.nClasses, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x: Variable):
         out = self.preact(x)
