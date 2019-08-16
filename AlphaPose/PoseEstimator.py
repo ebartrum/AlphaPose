@@ -16,8 +16,8 @@ class PoseEstimator(nn.Module):
     def __init__(self):
         super(PoseEstimator, self).__init__()
         # Det model
-        self.det_model = Darknet("models/yolov3-spp.cfg").cuda()
-        self.det_model.load_weights('models/yolov3-spp.weights')
+        self.det_model = Darknet("models/yolo/yolov3-spp.cfg").cuda()
+        self.det_model.load_weights('models/yolo/yolov3-spp.weights')
         self.inp_dim = 608 
         self.det_model.net_info['height'] = self.inp_dim
         self.det_inp_dim = int(self.det_model.net_info['height'])
