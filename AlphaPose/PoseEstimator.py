@@ -13,22 +13,31 @@ from SPPE.src.utils.img import load_image, cropBox, im_to_torch
 from AlphaPose.pPose_nms import pose_nms, write_json
 
 class PoseEstimator(nn.Module):
+    def __init__(self):
+        super(PoseEstimator, self).__init__()
+        # Det model
+        self.det_model = Darknet("models/yolov3-spp.cfg").cuda()
+        self.det_model.load_weights('models/yolov3-spp.weights')
+        self.inp_dim = 608 
+        self.det_model.net_info['height'] = self.inp_dim
+        self.det_inp_dim = int(self.det_model.net_info['height'])
+        self.det_model.eval()
+        # Pose model
+        self.pose_dataset = Mscoco()
+        self.pose_model = InferenNet_fast(4 * 1 + 1, self.pose_dataset)
+        self.pose_model.cuda()
+        self.pose_model.eval()
+        
     def forward(self, image_list):
         images = image_list
         im_dim_list = torch.tensor(
                 [[im.shape[1], im.shape[0],
                     im.shape[1], im.shape[0]] for im in image_list]).float()
         img_batch = torch.cat([prep_image_array(image, 608)[0] for image in images]).cuda()
-        det_model = Darknet("models/yolov3-spp.cfg").cuda()
-        det_model.load_weights('models/yolov3-spp.weights')
-        inp_dim = 608 
-        det_model.net_info['height'] = inp_dim
-        det_inp_dim = int(det_model.net_info['height'])
-        det_model.eval()
 
         #From dataloader
         with torch.no_grad():
-            prediction = det_model(img_batch, CUDA=True)
+            prediction = self.det_model(img_batch, CUDA=True)
             dets = dynamic_write_results(prediction, confidence=0.05,
                                 num_classes=80, nms=True, nms_conf=0.6)
             if isinstance(dets, int) or dets.shape[0] == 0:
@@ -36,12 +45,11 @@ class PoseEstimator(nn.Module):
                 print(orig_img, im_name, None, None, None, None, None)
             dets = dets.cpu()
             im_dim_list = torch.index_select(im_dim_list,0, dets[:, 0].long())
-            det_inp_dim = int(det_model.net_info['height'])
-            scaling_factor = torch.min(det_inp_dim / im_dim_list, 1)[0].view(-1, 1)
+            scaling_factor = torch.min(self.det_inp_dim / im_dim_list, 1)[0].view(-1, 1)
 
             # coordinate transfer
-            dets[:, [1, 3]] -= (det_inp_dim - scaling_factor * im_dim_list[:, 0].view(-1, 1)) / 2
-            dets[:, [2, 4]] -= (det_inp_dim - scaling_factor * im_dim_list[:, 1].view(-1, 1)) / 2
+            dets[:, [1, 3]] -= (self.det_inp_dim - scaling_factor * im_dim_list[:, 0].view(-1, 1)) / 2
+            dets[:, [2, 4]] -= (self.det_inp_dim - scaling_factor * im_dim_list[:, 1].view(-1, 1)) / 2
             
             dets[:, 1:5] /= scaling_factor
             for j in range(dets.shape[0]):
@@ -75,12 +83,6 @@ class PoseEstimator(nn.Module):
         pt1 = torch.cat(pt1_combined)
         pt2 = torch.cat(pt2_combined)
 
-        #Pose Model
-        pose_dataset = Mscoco()
-        pose_model = InferenNet_fast(4 * 1 + 1, pose_dataset)
-        pose_model.cuda()
-        pose_model.eval()
-
         with torch.no_grad():
             # TODO: General batch size
             batchSize = 1
@@ -93,7 +95,7 @@ class PoseEstimator(nn.Module):
             # print("num_batches: {}".format(num_batches))
             for j in range(num_batches):
                 inps_j = inps[j*batchSize:min((j +  1)*batchSize, datalen)].cuda()
-                hm_j = pose_model(inps_j)
+                hm_j = self.pose_model(inps_j)
                 hm.append(hm_j)
             hm = torch.cat(hm)
             hm = hm.cpu()
