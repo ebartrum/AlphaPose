@@ -5,6 +5,8 @@ except ImportError:
     from SPPE.src.utils.img import transformBoxInvert, transformBoxInvert_batch, findPeak, processPeaks
 import torch
 
+opt.outputResW = 64
+opt.outputResH = 80
 
 class DataLogger(object):
     def __init__(self):
@@ -132,8 +134,12 @@ def getPrediction(hms, pt1, pt2, inpH, inpW, resH, resW):
     # Very simple post-processing step to improve performance at tight PCK thresholds
     for i in range(preds.size(0)):
         for j in range(preds.size(1)):
+            # print("i is {}".format(i))
+            # print("j is {}".format(j))
             hm = hms[i][j]
             pX, pY = int(round(float(preds[i][j][0]))), int(round(float(preds[i][j][1])))
+            # if (i==1 and j==11):
+            #     import ipdb; ipdb.set_trace()
             if 0 < pX < opt.outputResW - 1 and 0 < pY < opt.outputResH - 1:
                 diff = torch.Tensor(
                     (hm[pY][pX + 1] - hm[pY][pX - 1], hm[pY + 1][pX] - hm[pY - 1][pX]))
