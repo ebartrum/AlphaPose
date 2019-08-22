@@ -42,7 +42,8 @@ class PoseEstimator(nn.Module):
                                 num_classes=80, nms=True, nms_conf=0.6)
             if isinstance(dets, int) or dets.shape[0] == 0:
                 #TODO: nothing detected.
-                print(orig_img, im_name, None, None, None, None, None)
+                return [None] * len(image_list)
+                # print(orig_img, im_name, None, None, None, None, None)
             dets = dets.cpu()
             im_dim_list = torch.index_select(im_dim_list,0, dets[:, 0].long())
             scaling_factor = torch.min(self.det_inp_dim / im_dim_list, 1)[0].view(-1, 1)
@@ -64,8 +65,7 @@ class PoseEstimator(nn.Module):
         for k in range(len(image_list)):
             boxes_k = boxes[dets[:,0]==k]
             if isinstance(boxes_k, int) or boxes_k.shape[0] == 0:
-                #TODO: nothing detected.
-                # Q.put((orig_img[k], im_name[k], None, None, None, None, None))
+                #nothing detected.
                 continue
             inputResH = 320
             inputResW = 256
@@ -109,7 +109,13 @@ class PoseEstimator(nn.Module):
         for i in range(len(image_list)):
             image_pos = dets[:,0].numpy()
             indices = np.where(image_pos==i)
+            if len(indices[0])==0:
+                result.append(None)
+                continue
             image_result = pose_nms(boxes[indices], scores[indices],
-                preds_img[indices], preds_scores[indices])[0]
-            result.append(image_result)
+                preds_img[indices], preds_scores[indices])
+            if len(image_result):
+                result.append(image_result[0])
+            else:
+                result.append(None)
         return result 
