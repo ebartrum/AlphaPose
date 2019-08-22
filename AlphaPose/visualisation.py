@@ -4,6 +4,8 @@ import torch
 import math
 
 def create_visualisation(frame, human, format='coco'):
+    if human is None:
+        return frame
     # '''
     # frame: frame image
     # im_res: im_res of predictions
