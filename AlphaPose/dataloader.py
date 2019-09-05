@@ -5,7 +5,6 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 from PIL import Image, ImageDraw
 from SPPE.src.utils.img import load_image, cropBox, im_to_torch
-from .opt import opt
 from yolo.preprocess import prep_image, prep_frame, inp_to_image
 from .pPose_nms import pose_nms, write_json
 from .matching import candidate_reselect as matching
@@ -29,10 +28,11 @@ if sys.version_info >= (3, 0):
 else:
     from Queue import Queue, LifoQueue
 
-if opt.vis_fast:
-    from .fn import vis_frame_fast as vis_frame
-else:
-    from .fn import vis_frame
+# if opt.vis_fast:
+#     from .fn import vis_frame_fast as vis_frame
+# else:
+#     from .fn import vis_frame
+from .fn import vis_frame
 
 
 class Image_loader(data.Dataset):
@@ -708,12 +708,17 @@ class DataWriter:
 class Mscoco(data.Dataset):
     def __init__(self, train=True, sigma=1,
                  scale_factor=(0.2, 0.3), rot_factor=40, label_type='Gaussian'):
+        opt_inputResH = 320
+        opt_inputResW = 256
+        opt_outputResH = 80
+        opt_outputResW = 64
+
         self.img_folder = '../data/coco/images'    # root image folders
         self.is_train = train           # training set or test set
-        self.inputResH = opt.inputResH
-        self.inputResW = opt.inputResW
-        self.outputResH = opt.outputResH
-        self.outputResW = opt.outputResW
+        self.inputResH = opt_inputResH
+        self.inputResW = opt_inputResW
+        self.outputResH = opt_outputResH
+        self.outputResW = opt_outputResW
         self.sigma = sigma
         self.scale_factor = scale_factor
         self.rot_factor = rot_factor
@@ -737,6 +742,10 @@ class Mscoco(data.Dataset):
 
 
 def crop_from_dets(img, boxes, inps, pt1, pt2):
+    opt_inputResH = 320
+    opt_inputResW = 256
+    opt_outputResH = 80
+    opt_outputResW = 64
     '''
     Crop human from origin image according to Dectecion Results
     '''
@@ -766,7 +775,7 @@ def crop_from_dets(img, boxes, inps, pt1, pt2):
             min(imght - 1, bottomRight[1] + ht * scaleRate / 2), upLeft[1] + 5)
 
         try:
-            inps[i] = cropBox(tmp_img.clone(), upLeft, bottomRight, opt.inputResH, opt.inputResW)
+            inps[i] = cropBox(tmp_img.clone(), upLeft, bottomRight, opt_inputResH, opt_inputResW)
         except IndexError:
             print(tmp_img.shape)
             print(upLeft)

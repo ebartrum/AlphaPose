@@ -3,7 +3,6 @@ from torch.autograd import Variable
 
 from .layers.SE_Resnet import SEResnet
 from .layers.DUC import DUC
-from SPPE.src.opt import opt
 
 
 def createModel():
@@ -12,8 +11,9 @@ def createModel():
 
 class FastPose(nn.Module):
     DIM = 128
+    opt_nClasses = 33
 
-    def __init__(self, nClasses=opt.nClasses):
+    def __init__(self, nClasses=opt_nClasses):
         super(FastPose, self).__init__()
 
         self.preact = SEResnet('resnet101')

@@ -1,12 +1,11 @@
-from SPPE.src.opt import opt
 try:
     from utils.img import transformBoxInvert, transformBoxInvert_batch, findPeak, processPeaks
 except ImportError:
     from SPPE.src.utils.img import transformBoxInvert, transformBoxInvert_batch, findPeak, processPeaks
 import torch
 
-opt.outputResW = 64
-opt.outputResH = 80
+opt_outputResW = 64
+opt_outputResH = 80
 
 class DataLogger(object):
     def __init__(self):
@@ -39,7 +38,7 @@ def heatmapAccuracy(output, label, idxs):
     preds = getPreds(output)
     gt = getPreds(label)
 
-    norm = torch.ones(preds.size(0)) * opt.outputResH / 10
+    norm = torch.ones(preds.size(0)) * opt_outputResH / 10
     dists = calc_dists(preds, gt, norm)
     #print(dists)
     acc = torch.zeros(len(idxs) + 1)
@@ -104,7 +103,7 @@ def postprocess(output):
         for j in range(p.size(1)):
             hm = output[i][j]
             pX, pY = int(round(p[i][j][0])), int(round(p[i][j][1]))
-            if 0 < pX < opt.outputResW - 1 and 0 < pY < opt.outputResH - 1:
+            if 0 < pX < opt_outputResW - 1 and 0 < pY < opt_outputResH - 1:
                 diff = torch.Tensor((hm[pY][pX + 1] - hm[pY][pX - 1], hm[pY + 1][pX] - hm[pY - 1][pX]))
                 p[i][j] += diff.sign() * 0.25
     p -= 0.5
@@ -140,7 +139,7 @@ def getPrediction(hms, pt1, pt2, inpH, inpW, resH, resW):
             pX, pY = int(round(float(preds[i][j][0]))), int(round(float(preds[i][j][1])))
             # if (i==1 and j==11):
             #     import ipdb; ipdb.set_trace()
-            if 0 < pX < opt.outputResW - 1 and 0 < pY < opt.outputResH - 1:
+            if 0 < pX < opt_outputResW - 1 and 0 < pY < opt_outputResH - 1:
                 diff = torch.Tensor(
                     (hm[pY][pX + 1] - hm[pY][pX - 1], hm[pY + 1][pX] - hm[pY - 1][pX]))
                 preds[i][j] += diff.sign() * 0.25
