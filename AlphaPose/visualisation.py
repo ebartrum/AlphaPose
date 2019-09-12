@@ -42,6 +42,7 @@ def create_visualisation(frame, human_list, format='coco'):
     img = frame
     height,width = img.shape[:2]
     img = cv2.resize(img,(int(width/2), int(height/2)))
+    WHITE = (255,255,255)
 
     for human in human_list:
         part_line = {}
@@ -56,7 +57,7 @@ def create_visualisation(frame, human_list, format='coco'):
             cor_x, cor_y = int(kp_preds[n, 0]), int(kp_preds[n, 1])
             part_line[n] = (int(cor_x/2), int(cor_y/2))
             bg = img.copy()
-            cv2.circle(bg, (int(cor_x/2), int(cor_y/2)), 2, p_color[n], -1)
+            cv2.circle(bg, (int(cor_x/2), int(cor_y/2)), 2, WHITE, -1)
             # Now create a mask of logo and create its inverse mask also
             transparency = max(0, min(1, kp_scores[n]))
             img = cv2.addWeighted(bg, transparency, img, 1-transparency, 0)
@@ -75,7 +76,7 @@ def create_visualisation(frame, human_list, format='coco'):
                 angle = math.degrees(math.atan2(Y[0] - Y[1], X[0] - X[1]))
                 stickwidth = (kp_scores[start_p] + kp_scores[end_p]) + 1
                 polygon = cv2.ellipse2Poly((int(mX),int(mY)), (int(length/2), stickwidth), int(angle), 0, 360, 1)
-                cv2.fillConvexPoly(bg, polygon, line_color[i])
+                cv2.fillConvexPoly(bg, polygon, WHITE)
                 #cv2.line(bg, start_xy, end_xy, line_color[i], (2 * (kp_scores[start_p] + kp_scores[end_p])) + 1)
                 transparency = max(0, min(1, 0.5*(kp_scores[start_p] + kp_scores[end_p])))
                 img = cv2.addWeighted(bg, transparency, img, 1-transparency, 0)
