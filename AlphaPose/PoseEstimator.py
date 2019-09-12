@@ -110,12 +110,12 @@ class PoseEstimator(nn.Module):
             image_pos = dets[:,0].numpy()
             indices = np.where(image_pos==i)
             if len(indices[0])==0:
-                result.append(None)
+                result.append([])
                 continue
             image_result = pose_nms(boxes[indices], scores[indices],
                 preds_img[indices], preds_scores[indices])
             if len(image_result):
-                result.append(image_result[0])
+                result.append(image_result)
             else:
-                result.append(None)
+                result.append([])
         return result 
