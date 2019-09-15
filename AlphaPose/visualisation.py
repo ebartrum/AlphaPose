@@ -4,7 +4,8 @@ import torch
 import math
 
 def create_visualisation(frame, human_list, format='coco'):
-    # import ipdb; ipdb.set_trace()
+    if human_list is None:
+        human_list = []
     if not len(human_list):
         return frame
     # '''
